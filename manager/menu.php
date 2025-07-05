@@ -154,7 +154,7 @@ include('sidebar.php');
                 <td><?= htmlspecialchars($menu['name']) ?></td>
                 <td><?= htmlspecialchars($menu['category_name']) ?></td>
                 <td><?= htmlspecialchars($menu['description']) ?></td>
-                <td>$<?= number_format($menu['price'], 2) ?></td>
+                <td>Rs.<?= number_format($menu['price'], 2) ?></td>
                 <td>
                     <button class="edit_btn" onclick="editMenu(
                         <?= $menu['id'] ?>,

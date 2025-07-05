@@ -1,0 +1,313 @@
+/* Base reset */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #f4f7fa;
+  color: #333;
+}
+
+/* Sidebar */
+.sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 220px;
+  height: 100vh;
+  background-color: #2c3e50;
+  color: #ecf0f1;
+  padding-top: 60px;
+  padding-left: 20px;
+  padding-right: 20px;
+  transition: transform 0.3s ease, width 0.3s ease;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  z-index: 1000;
+  /* Default visible on desktop */
+  transform: translateX(0);
+}
+
+/* Collapsed sidebar (desktop) */
+.sidebar.collapsed {
+  width: 60px;
+  transform: translateX(0);
+}
+
+/* Collapsed sidebar hides texts */
+.sidebar.collapsed h2,
+.sidebar.collapsed ul li a span {
+  display: none;
+}
+
+/* Sidebar header */
+.sidebar h2 {
+  text-align: center;
+  font-size: 20px;
+  margin-bottom: 20px;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+/* Sidebar menu */
+.sidebar ul {
+  list-style: none;
+  padding: 0;
+  margin-bottom: 1.5rem;
+  flex-grow: 1; /* Push table down */
+}
+
+.sidebar ul li a {
+  display: flex;
+  align-items: center;
+  padding: 12px 10px;
+  color: #ecf0f1;
+  text-decoration: none;
+  transition: background 0.3s;
+  white-space: nowrap;
+  gap: 10px;
+}
+
+.sidebar ul li a i {
+  min-width: 20px;
+  text-align: center;
+}
+
+.sidebar ul li a:hover {
+  background-color: #34495e;
+}
+
+/* Sidebar table */
+.sidebar table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+  color: #087591;
+  margin-bottom: 20px;
+}
+
+.sidebar.collapsed table {
+  display: none;
+}
+
+.sidebar table th,
+.sidebar table td {
+  border: 1px solid #4b6584;
+  padding: 6px 8px;
+  text-align: left;
+}
+
+.sidebar table th {
+  background-color: #34495e;
+}
+
+/* Toggle Button */
+#toggle-btn {
+    position: fixed;
+    top: 7px;
+    left: 25px;
+    background-color:  #34495e;
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    cursor: pointer;
+    border-radius: 4px;
+    z-index: 1100;
+    font-size: 1.2rem;
+    transition: left 0.3s ease;
+}
+
+.sidebar.collapsed + #toggle-btn {
+  left: 15px;
+}
+
+/* Main Content */
+.main-content {
+  margin-left: 220px;
+  padding: 30px;
+  transition: margin-left 0.3s ease;
+}
+
+.sidebar.collapsed ~ .main-content {
+  margin-left: 60px;
+}
+
+/* Cards */
+.card {
+  background: #f5f5f5;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 0 8px rgba(0,0,0,0.1);
+  flex: 1 1 200px;
+  text-align: center;
+}
+
+/* Menu cards */
+.menu-cards {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+.menu-card {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  padding: 20px;
+  width: 280px;
+  transition: transform 0.3s ease;
+}
+
+.menu-card:hover {
+  transform: scale(1.05);
+}
+
+.menu-card h3 {
+  margin-bottom: 10px;
+  color: #3498db;
+}
+
+.menu-card p {
+  margin-bottom: 8px;
+  color: #555;
+  line-height: 1.4;
+}
+
+/* Buttons */
+.delete_btn {
+  background-color: rgb(248, 28, 28);
+  padding: 10px;
+  margin: 5px;
+  border-radius: 10px;
+  text-decoration: none;
+  border: none;
+  color: whitesmoke;
+  cursor: pointer;
+}
+.edit_btn {
+  background-color: rgb(18, 190, 18);
+  padding: 10px;
+  margin: 5px;
+  border-radius: 10px;
+  text-decoration: none;
+  border: none;
+  color: whitesmoke;
+  cursor: pointer;
+}
+/* Recent Orders Table */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+}
+
+thead {
+  background: #2980b9;
+  color: white;
+}
+
+thead th {
+  padding: 15px 20px;
+  font-weight: 600;
+  text-align: left;
+}
+
+tbody tr {
+  border-bottom: 1px solid #ecf0f1;
+  transition: background-color 0.3s ease;
+}
+
+tbody tr:hover {
+  background-color: #f0f8ff;
+}
+
+tbody td {
+  padding: 12px 20px;
+  font-size: 1rem;
+  color: #34495e;
+}
+
+/* Status badges */
+tbody td:nth-child(3) {
+  font-weight: 600;
+}
+
+td.status-pending {
+  color: #e67e22;
+  font-weight: 700;
+}
+
+td.status-completed {
+  color: #27ae60;
+  font-weight: 700;
+}
+
+
+/* Responsive */
+@media (max-width: 768px) {
+  /* Sidebar hidden off-canvas by default */
+  .sidebar {
+    width: 220px;
+    height: 100vh;
+    top: 0;
+    left: 0;
+    transform: translateX(-260px);
+    padding-top: 60px;
+  }
+  /* When toggled, show sidebar */
+  .sidebar.collapsed {
+    transform: translateX(0);
+    width: 220px; /* full width */
+  }
+
+  /* Toggle button on left */
+  #toggle-btn {
+    left: 15px !important;
+  }
+
+  /* Main content fills screen */
+  .main-content {
+    margin-left: 0 !important;
+    padding: 20px 15px;
+  }
+
+  /* Sidebar table hidden on mobile */
+  .sidebar table {
+    display: none;
+  }
+
+  /* Sidebar menu items show full text */
+  .sidebar.collapsed h2,
+  .sidebar.collapsed ul li a span {
+    display: inline !important;
+  }
+
+  /* Stack dashboard cards vertically */
+  .dashboard-cards {
+    flex-direction: column;
+  }
+
+  /* Table styling for small screens */
+  table {
+    font-size: 14px;
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+
+  /* Full width inputs and buttons */
+  button, input, select, textarea {
+    width: 100%;
+    margin-bottom: 10px;
+  }
+}

@@ -3,7 +3,7 @@ include("../includes/auth.php");
 requireLogin();
 include("../includes/db.php");
 
-if (!checkRole('manager')) {
+if (!checkRole('staff')) {
     exit("Access Denied");
 }
 
@@ -95,12 +95,12 @@ while ($row = $topData->fetch_assoc()) {
     $topSold[] = (int)$row['sold'];
 }
 
-include('header/header.php');
+include('../includes/header.php');
 include('sidebar.php');
 ?>
 
 <div class="main-content">
-  <h1>Manager Dashboard</h1>
+  <h1>Staff Dashboard</h1>
   <p>Welcome, <?= htmlspecialchars($_SESSION['username']) ?></p>
 
   <div class="dashboard-cards">

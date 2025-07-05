@@ -1,0 +1,156 @@
+/* Sidebar styles */
+body {
+  margin: 0;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: #f4f7fb;
+}
+
+/* Sidebar container */
+.sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 250px;
+  height: 100vh;
+  background: #2c3e50;
+  color: #ecf0f1;
+  padding: 20px 15px;
+  box-shadow: 2px 0 12px rgba(0, 0, 0, 0.15);
+  overflow-y: auto;
+  transition: width 0.3s ease;
+  z-index: 1000;
+}
+
+/* Collapsed sidebar */
+.sidebar.collapsed {
+  width: 70px;
+  overflow-x: hidden;
+}
+
+/* Sidebar header */
+.sidebar h2 {
+  font-weight: 700;
+  font-size: 1.7rem;
+  margin-bottom: 30px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  white-space: nowrap;
+}
+
+.sidebar h2 i {
+  color: #e67e22;
+  font-size: 1.8rem;
+}
+
+/* Sidebar nav */
+.sidebar ul {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 30px 0;
+}
+
+.sidebar ul li {
+  margin-bottom: 15px;
+}
+
+.sidebar ul li a {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  color: #ecf0f1;
+  font-weight: 600;
+  font-size: 1.1rem;
+  text-decoration: none;
+  padding: 10px 12px;
+  border-radius: 8px;
+  transition: background 0.25s ease;
+  white-space: nowrap;
+}
+
+.sidebar ul li a i {
+  font-size: 1.3rem;
+  min-width: 20px;
+  text-align: center;
+}
+
+/* Hover effect */
+.sidebar ul li a:hover {
+  background: #e67e22;
+  color: #fff;
+}
+
+/* Collapsed sidebar hides the text but keeps icons visible */
+.sidebar.collapsed ul li a span {
+  display: none;
+}
+
+.sidebar.collapsed h2 span {
+  display: none;
+}
+
+/* Sidebar table */
+.sidebar table {
+  width: 100%;
+  border-collapse: collapse;
+  color: #bdc3c7;
+  font-size: 0.9rem;
+}
+
+.sidebar table thead tr {
+  border-bottom: 1px solid #7f8c8d;
+}
+
+.sidebar table th,
+.sidebar table td {
+  padding: 8px 6px;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.sidebar table tbody tr:hover {
+  background: rgba(230, 126, 34, 0.15);
+  color: #e67e22;
+}
+
+/* Toggle button */
+#toggle-btn {
+  position: fixed;
+  top: 20px;
+  left: 260px;
+  background: #e67e22;
+  border: none;
+  border-radius: 50%;
+  width: 38px;
+  height: 38px;
+  color: #fff;
+  font-size: 1.4rem;
+  cursor: pointer;
+  box-shadow: 0 4px 10px rgba(230, 126, 34, 0.5);
+  transition: left 0.3s ease, background 0.3s ease;
+  z-index: 1100;
+}
+
+#toggle-btn:hover {
+  background: #d35400;
+}
+
+/* When sidebar is collapsed, move toggle button */
+.sidebar.collapsed + #toggle-btn {
+  left: 80px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .sidebar {
+    width: 70px;
+  }
+
+  .sidebar.collapsed {
+    width: 0;
+  }
+
+  #toggle-btn {
+    left: 20px !important;
+  }
+}
