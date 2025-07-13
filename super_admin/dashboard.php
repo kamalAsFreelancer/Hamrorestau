@@ -3,7 +3,7 @@ include("../includes/auth.php");
 requireLogin();
 if (!checkRole('super_admin')) exit("Access Denied");
 include("../includes/db.php");
-include("../includes/header.php");
+include("header.php");
 include('sidebar.php');
 
 // Fetch stats

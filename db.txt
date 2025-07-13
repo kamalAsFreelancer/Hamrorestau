@@ -1,0 +1,193 @@
+<?php
+$servername = "localhost";
+$username = "root"; // change if needed
+$password = "";     // change if needed
+$dbname = "restaurant";
+
+// Create connection to MySQL server (without database)
+$conn = new mysqli($servername, $username, $password);
+if ($conn->connect_error) {
+    die("Connection failed: " . $conn->connect_error);
+}
+
+// Create database if not exists
+$sql = "CREATE DATABASE IF NOT EXISTS `$dbname` CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci";
+if (!$conn->query($sql)) {
+    die("Error creating database: " . $conn->error);
+}
+
+$conn->select_db($dbname);
+
+// Create tables
+$tables = [];
+
+// categories table
+$tables['categories'] = "
+CREATE TABLE IF NOT EXISTS `categories` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `name` varchar(100) NOT NULL,
+  `restaurant_id` int(11) NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `type` enum('kitchen','bar') DEFAULT 'kitchen',
+  `department` enum('kitchen','bar','dessert') DEFAULT 'kitchen',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `unique_cat_per_restaurant` (`restaurant_id`, `name`),
+  KEY `restaurant_id` (`restaurant_id`),
+  CONSTRAINT `categories_ibfk_1` FOREIGN KEY (`restaurant_id`) REFERENCES `restaurants` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+";
+
+// menus table
+$tables['menus'] = "
+CREATE TABLE IF NOT EXISTS `menus` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `category_id` int(11) NOT NULL,
+  `name` varchar(100) DEFAULT NULL,
+  `description` text DEFAULT NULL,
+  `category` varchar(100) NOT NULL DEFAULT 'Uncategorized',
+  `price` decimal(10,2) DEFAULT NULL,
+  `restaurant_id` int(11) NOT NULL,
+  `created_by` int(11) DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `department` enum('kitchen','bar','dessert') NOT NULL DEFAULT 'kitchen',
+  PRIMARY KEY (`id`),
+  KEY `restaurant_id` (`restaurant_id`),
+  KEY `created_by` (`created_by`),
+  KEY `fk_menu_category` (`category_id`),
+  CONSTRAINT `fk_menu_category` FOREIGN KEY (`category_id`) REFERENCES `categories` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `menus_ibfk_1` FOREIGN KEY (`restaurant_id`) REFERENCES `restaurants` (`id`),
+  CONSTRAINT `menus_ibfk_2` FOREIGN KEY (`created_by`) REFERENCES `users` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+";
+
+// orders table
+$tables['orders'] = "
+CREATE TABLE IF NOT EXISTS `orders` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `customer_name` varchar(100) DEFAULT NULL,
+  `total_amount` decimal(10,2) DEFAULT NULL,
+  `status` enum('pending','preparing','completed','cancelled') DEFAULT 'pending',
+  `restaurant_id` int(11) NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `table_id` int(11) DEFAULT NULL,
+  `place` enum('kitchen','bar','dessert','other') DEFAULT 'kitchen',
+  `cancelled_at` datetime DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `restaurant_id` (`restaurant_id`),
+  KEY `table_id` (`table_id`),
+  CONSTRAINT `orders_ibfk_1` FOREIGN KEY (`restaurant_id`) REFERENCES `restaurants` (`id`),
+  CONSTRAINT `orders_ibfk_2` FOREIGN KEY (`table_id`) REFERENCES `tables` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+";
+
+// order_items table
+$tables['order_items'] = "
+CREATE TABLE IF NOT EXISTS `order_items` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `order_id` int(11) NOT NULL,
+  `menu_id` int(11) NOT NULL,
+  `quantity` int(11) NOT NULL,
+  `price` decimal(10,2) NOT NULL,
+  `status` enum('pending','preparing','ready','served') DEFAULT 'pending',
+  PRIMARY KEY (`id`),
+  KEY `order_id` (`order_id`),
+  KEY `menu_id` (`menu_id`),
+  CONSTRAINT `order_items_ibfk_1` FOREIGN KEY (`order_id`) REFERENCES `orders` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `order_items_ibfk_2` FOREIGN KEY (`menu_id`) REFERENCES `menus` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+";
+
+// payments table
+$tables['payments'] = "
+CREATE TABLE IF NOT EXISTS `payments` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `order_id` int(11) DEFAULT NULL,
+  `amount` decimal(10,2) DEFAULT NULL,
+  `paid_at` datetime DEFAULT CURRENT_TIMESTAMP,
+  `payment_method` enum('cash','card','online') DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `order_id` (`order_id`),
+  CONSTRAINT `payments_ibfk_1` FOREIGN KEY (`order_id`) REFERENCES `orders` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+";
+
+// restaurants table
+$tables['restaurants'] = "
+CREATE TABLE IF NOT EXISTS `restaurants` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `name` varchar(100) NOT NULL,
+  `location` varchar(255) DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+";
+
+// settings table
+$tables['settings'] = "
+CREATE TABLE IF NOT EXISTS `settings` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `restaurant_id` int(11) DEFAULT NULL,
+  `tax_percent` decimal(5,2) DEFAULT 10.00,
+  `service_charge_percent` decimal(5,2) DEFAULT 5.00,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+";
+
+// staff table
+$tables['staff'] = "
+CREATE TABLE IF NOT EXISTS `staff` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `username` varchar(100) NOT NULL,
+  `password` varchar(255) NOT NULL,
+  `role` enum('waiter','kitchen','bartender') NOT NULL,
+  `restaurant_id` int(11) NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `username` (`username`),
+  KEY `restaurant_id` (`restaurant_id`),
+  CONSTRAINT `staff_ibfk_1` FOREIGN KEY (`restaurant_id`) REFERENCES `restaurants` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+";
+
+// tables table (restaurant tables)
+$tables['tables'] = "
+CREATE TABLE IF NOT EXISTS `tables` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `restaurant_id` int(11) NOT NULL,
+  `table_number` varchar(10) NOT NULL,
+  `seats` int(11) NOT NULL DEFAULT 4,
+  `status` enum('available','reserved','occupied') DEFAULT 'available',
+  `reserved_by` varchar(100) DEFAULT NULL,
+  `reserved_at` datetime DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `restaurant_id` (`restaurant_id`),
+  CONSTRAINT `tables_ibfk_1` FOREIGN KEY (`restaurant_id`) REFERENCES `restaurants` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+";
+
+// users table
+$tables['users'] = "
+CREATE TABLE IF NOT EXISTS `users` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `username` varchar(50) NOT NULL,
+  `password` varchar(255) NOT NULL,
+  `role` enum('super_admin','manager','staff') NOT NULL,
+  `restaurant_id` int(11) DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `username` (`username`),
+  KEY `restaurant_id` (`restaurant_id`),
+  CONSTRAINT `users_ibfk_1` FOREIGN KEY (`restaurant_id`) REFERENCES `restaurants` (`id`) ON DELETE SET NULL ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+";
+
+// Execute table creation queries
+foreach ($tables as $name => $sql) {
+    if ($conn->query($sql) === TRUE) {
+        echo "Table '$name' created or already exists.<br>";
+    } else {
+        echo "Error creating table '$name': " . $conn->error . "<br>";
+    }
+}
+
+?>

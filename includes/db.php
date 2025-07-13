@@ -1,8 +1,8 @@
 <?php
-$host = 'localhost';
-$user = 'root';
-$password = '';
-$dbname = 'restaurant';
+$host = 'sql204.infinityfree.com';
+$user = 'if0_39394592';
+$password = 'Efd9JOKyzDeccX';
+$dbname = 'if0_39394592_restaurant';
 
 // Connect to MySQL server
 $conn = new mysqli($host, $user, $password);

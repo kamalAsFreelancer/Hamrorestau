@@ -77,17 +77,8 @@ thead tr {
   font-weight: 600;
   text-align: left;
 }
-tr th {
-  background-color: #e67e22;
-  color: white;
-  font-weight: 600;
-  text-align: left;
-}
 
 thead tr th {
-  padding: 15px 12px;
-}
-tr th {
   padding: 15px 12px;
 }
 
@@ -95,16 +86,8 @@ tbody tr {
   border-bottom: 1px solid #ddd;
   transition: background-color 0.2s ease;
 }
-tr {
-  border-bottom: 1px solid #ddd;
-  transition: background-color 0.2s ease;
-}
 
 tbody tr:hover {
-  background-color: #fce9d8;
-  color: #e67e22;
-}
-tr:hover {
   background-color: #fce9d8;
   color: #e67e22;
 }
@@ -157,7 +140,6 @@ form button {
   padding: 10px 20px;
   margin-right: 5px;
   border: none;
-  text-decoration: none;
   border-radius: 6px;
   background-color: #3498db;
   color: white;
@@ -168,7 +150,7 @@ form button.delete_btn {
   background-color: #e74c3c;
 }
 td button.delete_btn {
-  background-color: #cc847c;
+  background-color: #e74c3c;
 }
 td button.edit_btn {
   background-color: rgb(9, 136, 9);
@@ -182,7 +164,6 @@ td button {
     padding: 10px 20px;
     margin-right: 5px;
     border: none;
-    text-decoration: none;
     border-radius: 6px;
     background-color: #3498db;
     color: white;
@@ -203,33 +184,4 @@ form input, form textarea, form select {
   margin-bottom: 10px;
   border: 1px solid #ccc;
   border-radius: 6px;
-}
-
-.edit_btn {
-  background-color: rgb(9, 136, 9);
-}
-.edit_del {
-  background-color: rgb(9, 136, 9);
-}
-a {
-  padding: 10px 20px;
-    margin-right: 5px;
-    border: none;
-    text-decoration: none;
-    border-radius: 6px;
-    background-color: #3498db;
-    color: white;
-    cursor: pointer;
-}
-
-button {
-    padding: 10px 20px;
-    margin-right: 5px;
-    border: none;
-    text-decoration: none;
-    border-radius: 6px;
-    background-color: #3498db;
-    color: white;
-    cursor: pointer;
-
 }

@@ -1,0 +1,101 @@
+<?php
+include("../includes/auth.php");
+requireLogin();
+include("../includes/db.php");
+
+// Access control: only waiter and manager roles
+if (!in_array($_SESSION['role'], ['waiter', 'manager'])) {
+    exit("Access Denied");
+}
+
+// Check if table_id is provided
+if (!isset($_GET['table_id'])) {
+    exit("Table ID is missing.");
+}
+
+$tableId = intval($_GET['table_id']);
+$restaurantId = $_SESSION['restaurant_id'];
+
+// Fetch orders for the specified table and restaurant
+$orderStmt = $conn->prepare("
+    SELECT id, status, created_at
+    FROM orders 
+    WHERE table_id = ? AND restaurant_id = ? 
+    ORDER BY created_at DESC
+");
+$orderStmt->bind_param("ii", $tableId, $restaurantId);
+$orderStmt->execute();
+$orderResults = $orderStmt->get_result();
+
+include('../includes/header.php');
+include('sidebar.php');
+?>
+<div class="main-content">
+<h2>Orders for Table #<?= htmlspecialchars($tableId) ?></h2>
+
+<?php if ($orderResults->num_rows === 0): ?>
+    <p>No orders found for this table.</p>
+<?php endif; ?>
+
+<?php while ($order = $orderResults->fetch_assoc()): ?>
+    <div style="border: 1px solid #ccc; padding: 15px; margin-bottom: 20px; border-radius: 8px;">
+        <h4>
+            Order ID: #<?= htmlspecialchars($order['id']) ?> | 
+            Status: <?= htmlspecialchars($order['status']) ?> | 
+            Placed: <?= !empty($order['submitted_at']) ? htmlspecialchars($order['submitted_at']) : (htmlspecialchars($order['created_at']) ?? 'N/A') ?>
+        </h4>
+
+        <?php
+        // Fetch order items with menu names for this order
+        $itemStmt = $conn->prepare("
+            SELECT oi.quantity, oi.price, m.name 
+            FROM order_items oi 
+            JOIN menus m ON oi.menu_id = m.id 
+            JOIN orders o ON oi.order_id = o.id
+            WHERE oi.order_id = ? AND o.restaurant_id = ?
+        ");
+        $itemStmt->bind_param("ii", $order['id'], $restaurantId);
+        $itemStmt->execute();
+        $itemsResult = $itemStmt->get_result();
+
+        $hasItems = false;
+        $totalAmount = 0;
+        ?>
+
+        <?php if ($itemsResult->num_rows === 0): ?>
+            <p style="color: red;">No items in this order.</p>
+        <?php else: ?>
+            <table width="100%" border="1" cellpadding="5" cellspacing="0">
+                <thead>
+                    <tr>
+                        <th>Item</th>
+                        <th>Price (Rs)</th>
+                        <th>Qty</th>
+                        <th>Subtotal (Rs)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php while ($item = $itemsResult->fetch_assoc()):
+                        $hasItems = true;
+                        $subtotal = $item['price'] * $item['quantity'];
+                        $totalAmount += $subtotal;
+                    ?>
+                    <tr>
+                        <td><?= htmlspecialchars($item['name']) ?></td>
+                        <td><?= number_format($item['price'], 2) ?></td>
+                        <td><?= intval($item['quantity']) ?></td>
+                        <td><?= number_format($subtotal, 2) ?></td>
+                    </tr>
+                    <?php endwhile; ?>
+                    <tr>
+                        <td colspan="3" style="text-align: right; font-weight: bold;">Total:</td>
+                        <td style="font-weight: bold;">Rs. <?= number_format($totalAmount, 2) ?></td>
+                    </tr>
+                </tbody>
+            </table>
+        <?php endif; ?>
+    </div>
+    </div>
+<?php endwhile; ?>
+
+<?php include('../includes/footer.php'); ?>

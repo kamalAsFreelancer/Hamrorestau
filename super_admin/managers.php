@@ -22,7 +22,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 $restaurants = $conn->query("SELECT * FROM restaurants");
 $managers = $conn->query("SELECT u.username, r.name AS restaurant_name FROM users u JOIN restaurants r ON u.restaurant_id = r.id WHERE u.role='manager'");
 
-include('../includes/header.php');
+include("header.php");
 include('sidebar.php');
 ?>
 <div class="main-content">
@@ -41,12 +41,16 @@ include('sidebar.php');
 
 <h2>All Managers</h2>
 <table border="1">
+    <thead>
     <tr><th>Username</th><th>Restaurant</th></tr>
+    </thead>
     <?php while ($m = $managers->fetch_assoc()): ?>
+        <tbody>
         <tr>
             <td><?= htmlspecialchars($m['username']) ?></td>
             <td><?= htmlspecialchars($m['restaurant_name']) ?></td>
         </tr>
+    </tbody>
     <?php endwhile; ?>
 </table>
 </div>

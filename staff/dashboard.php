@@ -3,96 +3,70 @@ include("../includes/auth.php");
 requireLogin();
 include("../includes/db.php");
 
-if (!checkRole('staff')) {
+// Only allow staff to access this page
+if (!in_array($_SESSION['role'], ['waiter', 'kitchen', 'bartender'])) {
     exit("Access Denied");
 }
 
+$staffId = $_SESSION['user_id'];
 $restaurantId = $_SESSION['restaurant_id'];
 
-// Total Orders
-$totalOrdersResult = $conn->query("SELECT COUNT(*) AS total FROM orders WHERE restaurant_id = $restaurantId");
-$totalOrders = $totalOrdersResult->fetch_assoc()['total'] ?? 0;
+// Fetch staff role
+$stmt = $conn->prepare("SELECT role FROM staff WHERE id = ? AND restaurant_id = ?");
+$stmt->bind_param("ii", $staffId, $restaurantId);
+$stmt->execute();
+$result = $stmt->get_result();
 
-// Pending Orders
-$pendingOrdersResult = $conn->query("SELECT COUNT(*) AS total FROM orders WHERE restaurant_id = $restaurantId AND status = 'pending'");
-$pendingOrders = $pendingOrdersResult->fetch_assoc()['total'] ?? 0;
-
-// Completed Orders
-$completedOrdersResult = $conn->query("SELECT COUNT(*) AS total FROM orders WHERE restaurant_id = $restaurantId AND status = 'completed'");
-$completedOrders = $completedOrdersResult->fetch_assoc()['total'] ?? 0;
-
-// Total Staff
-$totalStaffResult = $conn->query("SELECT COUNT(*) AS total FROM users WHERE role = 'staff' AND restaurant_id = $restaurantId");
-$totalStaff = $totalStaffResult->fetch_assoc()['total'] ?? 0;
-
-// Total Menu Items
-$totalMenuResult = $conn->query("SELECT COUNT(*) AS total FROM menus WHERE restaurant_id = $restaurantId");
-$totalMenu = $totalMenuResult->fetch_assoc()['total'] ?? 0;
-
-// Recent orders (last 5)
-$recentOrders = $conn->query("SELECT * FROM orders WHERE restaurant_id = $restaurantId ORDER BY created_at DESC LIMIT 5");
-
-// --- Prepare data for charts ---
-
-// Daily Orders - last 7 days
-$orderData = $conn->prepare("
-    SELECT DATE(created_at) AS day, COUNT(*) AS total 
-    FROM orders 
-    WHERE restaurant_id = ? AND created_at >= DATE_SUB(CURDATE(), INTERVAL 6 DAY)
-    GROUP BY DATE(created_at)
-    ORDER BY DATE(created_at) ASC
-");
-$orderData->bind_param("i", $restaurantId);
-$orderData->execute();
-$orderData = $orderData->get_result();
-
-$dailyLabels = [];
-$dailyCounts = [];
-while ($row = $orderData->fetch_assoc()) {
-    $dailyLabels[] = $row['day'];
-    $dailyCounts[] = (int)$row['total'];
+if ($result->num_rows !== 1) {
+    exit("Staff not found.");
 }
 
-// Revenue Report - last 7 days
-$revenueStmt = $conn->prepare("
-    SELECT DATE(o.created_at) AS day, IFNULL(SUM(oi.price * oi.quantity),0) AS revenue
-    FROM orders o
-    LEFT JOIN order_items oi ON o.id = oi.order_id
-    WHERE o.restaurant_id = ? AND o.created_at >= DATE_SUB(CURDATE(), INTERVAL 6 DAY)
-    GROUP BY DATE(o.created_at)
-    ORDER BY DATE(o.created_at) ASC
-");
-$revenueStmt->bind_param("i", $restaurantId);
-$revenueStmt->execute();
-$revenueData = $revenueStmt->get_result();
+$staff = $result->fetch_assoc();
+$role = $staff['role'];
 
-$revenueLabels = [];
-$revenueTotals = [];
-while ($row = $revenueData->fetch_assoc()) {
-    $revenueLabels[] = $row['day'];
-    $revenueTotals[] = (float)$row['revenue'];
+// Role-based data fetching can be done here
+// Example: For waiter, fetch tables; for kitchen, fetch pending kitchen orders; for bartender, fetch drink orders
+
+// Fetch tables (for waiter)
+$tables = [];
+if ($role === 'waiter') {
+    $tableStmt = $conn->prepare("SELECT id, table_number, status FROM tables WHERE restaurant_id = ?");
+    $tableStmt->bind_param("i", $restaurantId);
+    $tableStmt->execute();
+    $tables = $tableStmt->get_result()->fetch_all(MYSQLI_ASSOC);
 }
 
-// Top Selling Items - last 30 days
-$topStmt = $conn->prepare("
-    SELECT m.name, SUM(oi.quantity) AS sold
-    FROM order_items oi
-    JOIN menus m ON oi.menu_id = m.id
-    JOIN orders o ON oi.order_id = o.id
-    WHERE o.restaurant_id = ? AND o.created_at >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)
-    GROUP BY m.id
-    ORDER BY sold DESC
-    LIMIT 5
-");
-$topStmt->bind_param("i", $restaurantId);
-$topStmt->execute();
-$topData = $topStmt->get_result();
+// Fetch kitchen orders (for kitchen)
+$kitchenOrders = [];
+if ($role === 'kitchen') {
+    $kitchenStmt = $conn->prepare("
+        SELECT o.table_id, oi.status, o.created_at,m.name,oi.id,oi.quantity,t.table_number
+        FROM orders o
+        JOIN order_items oi ON o.id=oi.order_id
+        JOIN menus m ON oi.menu_id=m.id
+        JOIN tables t ON o.table_id=t.id
+        WHERE o.restaurant_id = ? AND oi.status IN ('pending', 'preparing')
+        ORDER BY o.created_at DESC
+    ");
+    $kitchenStmt->bind_param("i", $restaurantId);
+    $kitchenStmt->execute();
+    $kitchenOrders = $kitchenStmt->get_result()->fetch_all(MYSQLI_ASSOC);
+}
 
-$topLabels = [];
-$topSold = [];
-while ($row = $topData->fetch_assoc()) {
-    $topLabels[] = $row['name'];
-    $topSold[] = (int)$row['sold'];
+// Fetch bartender orders (for bartender)
+$bartenderOrders = [];
+if ($role === 'bartender') {
+    $bartenderStmt = $conn->prepare("
+        SELECT o.table_id, oi.status, o.created_at,m.name,oi.id, oi.quantity
+        FROM orders o
+        JOIN order_items oi ON o.id=oi.order_id
+        JOIN menus m ON oi.menu_id=m.id
+        WHERE o.restaurant_id = ? AND oi.status IN ('pending', 'preparing')
+        ORDER BY o.created_at DESC
+    ");
+    $bartenderStmt->bind_param("i", $restaurantId);
+    $bartenderStmt->execute();
+    $bartenderOrders = $bartenderStmt->get_result()->fetch_all(MYSQLI_ASSOC);
 }
 
 include('../includes/header.php');
@@ -101,133 +75,97 @@ include('sidebar.php');
 
 <div class="main-content">
   <h1>Staff Dashboard</h1>
-  <p>Welcome, <?= htmlspecialchars($_SESSION['username']) ?></p>
+  <p>Welcome, <?= htmlspecialchars($_SESSION['username']) ?> (Role: <?= htmlspecialchars(ucfirst($role)) ?>)</p>
 
-  <div class="dashboard-cards">
-    <div class="card">
-      <h3>Total Orders</h3>
-      <p><?= $totalOrders ?></p>
-    </div>
-    <div class="card">
-      <h3>Pending Orders</h3>
-      <p><?= $pendingOrders ?></p>
-    </div>
-    <div class="card">
-      <h3>Completed Orders</h3>
-      <p><?= $completedOrders ?></p>
-    </div>
-    <div class="card">
-      <h3>Total Staff</h3>
-      <p><?= $totalStaff ?></p>
-    </div>
-    <div class="card">
-      <h3>Total Menu Items</h3>
-      <p><?= $totalMenu ?></p>
-    </div>
-  </div>
+  <?php if ($role === 'waiter'): ?>
+    <h2>Manage Tables & Orders</h2>
+    <table border="1" cellpadding="8" cellspacing="0" style="width:100%; margin-bottom: 20px;">
+      <thead>
+        <tr><th>Table Number</th><th>Status</th><th>Actions</th></tr>
+      </thead>
+      <tbody>
+        <?php foreach ($tables as $table): ?>
+          <tr>
+            <td><?= $table['table_number'] ?></td>
+            <td><?= htmlspecialchars($table['status']) ?></td>
+            <td>
+              <a href="take_order.php?table_id=<?= $table['id'] ?>"><button>Take Order</button></a>
+              <!-- You can add more actions here -->
+            </td>
+          </tr>
+        <?php endforeach; ?>
+      </tbody>
+    </table>
 
-  <h2>Recent Orders</h2>
-  <table border="1" cellpadding="5" cellspacing="0" style="width:100%; margin-bottom: 40px;">
-    <thead>
-      <tr>
-        <th>Order ID</th>
-        <th>Customer</th>
-        <th>Status</th>
-        <th>Total</th>
-        <th>Created At</th>
-      </tr>
-    </thead>
-    <tbody>
-      <?php while ($order = $recentOrders->fetch_assoc()): ?>
-      <tr>
-        <td><?= $order['id'] ?></td>
-        <td><?= htmlspecialchars($order['customer_name']) ?></td>
-        <td><?= htmlspecialchars(ucfirst($order['status'])) ?></td>
-        <td>$<?= number_format($order['total_amount'], 2) ?></td>
-        <td><?= $order['created_at'] ?></td>
-      </tr>
-      <?php endwhile; ?>
-    </tbody>
-  </table>
+  <?php elseif ($role === 'kitchen'): ?>
+    <h2>Kitchen Orders</h2>
+    <table border="1" cellpadding="8" cellspacing="0" style="width:100%; margin-bottom: 20px;">
+      <thead>
+        <tr><th>Order ID</th><th>Table</th><th>Name</th><th>Qty</th><th>Status</th><th>Created At</th><th>Actions</th></tr>
+      </thead>
+      <tbody>
+        <?php foreach ($kitchenOrders as $order): ?>
+          <tr>
+            <td><?= $order['id'] ?></td>
+            <td><?= $order['table_number'] ?></td>
+            <td><?= $order['name'] ?></td>
+            <td><?= $order['quantity'] ?></td>
+            <td><?= htmlspecialchars($order['status']) ?></td>
+            <td><?= $order['created_at'] ?></td>
+            <td>
+              <form method="POST" action="update_order_status.php" style="display:inline;">
+                <input type="hidden" name="id" value="<?= $order['id'] ?>">
+                <select name="status">
+                  <option value="preparing" <?= $order['status'] === 'preparing' ? 'selected' : '' ?>>Preparing</option>
+                  <option value="ready" <?= $order['status'] === 'ready' ? 'selected' : '' ?>>Ready</option>
+                </select>
+                <button type="submit">Update</button>
+              </form>
+            </td>
+          </tr>
+        <?php endforeach; ?>
+      </tbody>
+    </table>
 
-  <!-- Chart.js Charts -->
-  <h2>📈 Daily Orders (Last 7 Days)</h2>
-  <canvas id="ordersChart" height="100"></canvas>
-
-  <h2>💵 Revenue Report (Last 7 Days)</h2>
-  <canvas id="revenueChart" height="100"></canvas>
-
-  <h2>🔥 Top Selling Items (Last 30 Days)</h2>
-  <canvas id="topItemsChart" height="100"></canvas>
+  <?php elseif ($role === 'bartender'): ?>
+    <h2>Bartender Orders</h2>
+    <table border="1" cellpadding="8" cellspacing="0" style="width:100%; margin-bottom: 20px;">
+      <thead>
+        <tr>
+          <th>Order ID</th>
+          <th>Table</th>
+          <th>Name</th>
+          <th>Qty</th>
+          <th>Status</th>
+          <th>Created At</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <?php foreach ($bartenderOrders as $order): ?>
+          <tr>
+            <td><?= $order['id'] ?></td>
+            <td><?= $order['table_id'] ?></td>
+            <td><?= $order['name'] ?></td>
+            <td><?= htmlspecialchars($order['status']) ?></td>
+            <td><?= $order['created_at'] ?></td>
+            <td>
+              <form method="POST" action="update_order_status.php" style="display:inline;">
+                <input type="hidden" name="id" value="<?= $order['id'] ?>">
+                <select name="status">
+                  <option value="preparing" <?= $order['status'] === 'preparing' ? 'selected' : '' ?>>Preparing</option>
+                  <option value="ready" <?= $order['status'] === 'ready' ? 'selected' : '' ?>>Ready</option>
+                </select>
+                <button type="submit">Update</button>
+              </form>
+            </td>
+          </tr>
+        <?php endforeach; ?>
+      </tbody>
+    </table>
+  <?php else: ?>
+    <p>Your role does not have a dashboard view yet.</p>
+  <?php endif; ?>
 </div>
-
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script>
-const dailyLabels = <?= json_encode($dailyLabels) ?>;
-const dailyCounts = <?= json_encode($dailyCounts) ?>;
-
-const revenueLabels = <?= json_encode($revenueLabels) ?>;
-const revenueTotals = <?= json_encode($revenueTotals) ?>;
-
-const topLabels = <?= json_encode($topLabels) ?>;
-const topSold = <?= json_encode($topSold) ?>;
-
-// Daily Orders Chart
-new Chart(document.getElementById("ordersChart"), {
-  type: 'line',
-  data: {
-    labels: dailyLabels,
-    datasets: [{
-      label: 'Orders',
-      data: dailyCounts,
-      borderColor: 'blue',
-      backgroundColor: 'rgba(0, 0, 255, 0.2)',
-      fill: true,
-      tension: 0.3
-    }]
-  },
-  options: {
-    responsive: true,
-    scales: {
-      y: { beginAtZero: true, stepSize: 1 }
-    }
-  }
-});
-
-// Revenue Chart
-new Chart(document.getElementById("revenueChart"), {
-  type: 'bar',
-  data: {
-    labels: revenueLabels,
-    datasets: [{
-      label: 'Revenue ($)',
-      data: revenueTotals,
-      backgroundColor: 'green'
-    }]
-  },
-  options: {
-    responsive: true,
-    scales: {
-      y: { beginAtZero: true }
-    }
-  }
-});
-
-// Top Items Pie Chart
-new Chart(document.getElementById("topItemsChart"), {
-  type: 'pie',
-  data: {
-    labels: topLabels,
-    datasets: [{
-      label: 'Sold',
-      data: topSold,
-      backgroundColor: ['#e74c3c', '#f39c12', '#f1c40f', '#3498db', '#9b59b6']
-    }]
-  },
-  options: {
-    responsive: true
-  }
-});
-</script>
 
 <?php include('../includes/footer.php'); ?>

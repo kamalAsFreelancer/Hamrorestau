@@ -1,0 +1,53 @@
+this is working for the add order.....
+
+<?php
+include("../includes/auth.php");
+requireLogin();
+include("../includes/db.php");
+
+$customerName = $_POST['customer_name'];
+$tableId = $_POST['table_id'];
+$restaurantId = $_SESSION['restaurant_id'];
+$menus = $_POST['menus'];
+
+$totalAmount = 0;
+
+// Create order first
+$orderStmt = $conn->prepare("INSERT INTO orders (customer_name, table_id, table_number, restaurant_id, status, created_at) VALUES (?, ?, ?, ?, 'pending', NOW())");
+$tableNumber = $tableId; // or fetch table number based on tableId
+$orderStmt->bind_param("siii", $customerName, $tableId, $tableNumber, $restaurantId);
+$orderStmt->execute();
+
+$orderId = $conn->insert_id;
+
+// Prepare statement to get price
+$priceStmt = $conn->prepare("SELECT price FROM menus WHERE id = ?");
+
+// Insert into order_items
+foreach ($menus as $item) {
+    $menuId = intval($item['menu_id']);
+    $quantity = intval($item['quantity']);
+
+    // Get price of menu item
+    $priceStmt->bind_param("i", $menuId);
+    $priceStmt->execute();
+    $priceResult = $priceStmt->get_result();
+    $menu = $priceResult->fetch_assoc();
+
+    $price = $menu['price'];
+    $subtotal = $price * $quantity;
+    $totalAmount += $subtotal;
+
+    // Insert into order_items
+    $itemStmt = $conn->prepare("INSERT INTO order_items (order_id, menu_id, quantity, price, status) VALUES (?, ?, ?, ?, 'pending')");
+    $itemStmt->bind_param("iiid", $orderId, $menuId, $quantity, $price);
+    $itemStmt->execute();
+}
+
+// Update total amount in order
+$updateTotal = $conn->prepare("UPDATE orders SET total_amount = ? WHERE id = ?");
+$updateTotal->bind_param("di", $totalAmount, $orderId);
+$updateTotal->execute();
+
+echo "Order placed successfully!";
+?>

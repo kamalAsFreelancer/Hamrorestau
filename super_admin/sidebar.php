@@ -1,13 +1,15 @@
 <!-- Sidebar -->
 <div class="sidebar" id="sidebar">
-    <h2><i class="fas fa-crown"></i> Super Admin</h2>
+    <div class="sidebar-content">
+    <h2><i class="fas fa-crown"></i> <span>Super Admin</span></h2>
     <ul>
-        <li><a href="dashboard.php"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
-        <li><a href="restaurants.php"><i class="fas fa-store"></i> Restaurants</a></li>
-        <li><a href="managers.php"><i class="fas fa-user-tie"></i> Managers</a></li>
-        <li><a href="settings.php"><i class="fas fa-cogs"></i> Settings</a></li>
-        <li><a href="../includes/logout.php"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+        <li><a href="dashboard.php"><i class="fas fa-tachometer-alt"></i> <span>Dashboard</span></a></li>
+        <li><a href="restaurants.php"><i class="fas fa-store"></i> <span>Restaurants</span></a></li>
+        <li><a href="managers.php"><i class="fas fa-user-tie"></i> <span>Manager</span></a></li>
+        <li><a href="settings.php"><i class="fas fa-cogs"></i> <span>Settings</span></a></li>
+        <li><a href="../includes/logout.php"><i class="fas fa-sign-out-alt"></i> <span>Logout</span></a></li>
     </ul>
+</div>
 </div>
 
 <!-- Toggle Button for Collapse -->

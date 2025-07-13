@@ -7,34 +7,35 @@ if (!checkRole('manager')) {
     exit("Access Denied");
 }
 
-$restaurantId = $_SESSION['restaurant_id'];
+if (!isset($_SESSION['restaurant_id'])) {
+    exit("Restaurant ID missing in session");
+}
 
-// Total Orders
-$totalOrdersResult = $conn->query("SELECT COUNT(*) AS total FROM orders WHERE restaurant_id = $restaurantId");
-$totalOrders = $totalOrdersResult->fetch_assoc()['total'] ?? 0;
+$restaurantId = (int)$_SESSION['restaurant_id'];
 
-// Pending Orders
-$pendingOrdersResult = $conn->query("SELECT COUNT(*) AS total FROM orders WHERE restaurant_id = $restaurantId AND status = 'pending'");
-$pendingOrders = $pendingOrdersResult->fetch_assoc()['total'] ?? 0;
+// Reusable count function
+function getCount($conn, $query, $restaurantId) {
+    $stmt = $conn->prepare($query);
+    $stmt->bind_param("i", $restaurantId);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    return $result->fetch_assoc()['total'] ?? 0;
+}
 
-// Completed Orders
-$completedOrdersResult = $conn->query("SELECT COUNT(*) AS total FROM orders WHERE restaurant_id = $restaurantId AND status = 'completed'");
-$completedOrders = $completedOrdersResult->fetch_assoc()['total'] ?? 0;
+// Stats
+$totalOrders = getCount($conn, "SELECT COUNT(*) AS total FROM orders WHERE restaurant_id = ?", $restaurantId);
+$pendingOrders = getCount($conn, "SELECT COUNT(*) AS total FROM orders WHERE restaurant_id = ? AND status = 'pending'", $restaurantId);
+$completedOrders = getCount($conn, "SELECT COUNT(*) AS total FROM orders WHERE restaurant_id = ? AND status = 'completed'", $restaurantId);
+$totalStaff = getCount($conn, "SELECT COUNT(*) AS total FROM users WHERE role = 'staff' AND restaurant_id = ?", $restaurantId);
+$totalMenu = getCount($conn, "SELECT COUNT(*) AS total FROM menus WHERE restaurant_id = ?", $restaurantId);
 
-// Total Staff
-$totalStaffResult = $conn->query("SELECT COUNT(*) AS total FROM users WHERE role = 'staff' AND restaurant_id = $restaurantId");
-$totalStaff = $totalStaffResult->fetch_assoc()['total'] ?? 0;
+// ✅ FIXED: No join with users, just get customer_name directly from orders
+$recentStmt = $conn->prepare("SELECT id, status, total_amount, created_at, customer_name FROM orders WHERE restaurant_id = ? ORDER BY created_at DESC LIMIT 5");
+$recentStmt->bind_param("i", $restaurantId);
+$recentStmt->execute();
+$recentOrders = $recentStmt->get_result();
 
-// Total Menu Items
-$totalMenuResult = $conn->query("SELECT COUNT(*) AS total FROM menus WHERE restaurant_id = $restaurantId");
-$totalMenu = $totalMenuResult->fetch_assoc()['total'] ?? 0;
-
-// Recent orders (last 5)
-$recentOrders = $conn->query("SELECT * FROM orders WHERE restaurant_id = $restaurantId ORDER BY created_at DESC LIMIT 5");
-
-// --- Prepare data for charts ---
-
-// Daily Orders - last 7 days
+// Daily Orders Chart
 $orderData = $conn->prepare("
     SELECT DATE(created_at) AS day, COUNT(*) AS total 
     FROM orders 
@@ -53,7 +54,7 @@ while ($row = $orderData->fetch_assoc()) {
     $dailyCounts[] = (int)$row['total'];
 }
 
-// Revenue Report - last 7 days
+// Revenue Chart
 $revenueStmt = $conn->prepare("
     SELECT DATE(o.created_at) AS day, IFNULL(SUM(oi.price * oi.quantity),0) AS revenue
     FROM orders o
@@ -73,7 +74,7 @@ while ($row = $revenueData->fetch_assoc()) {
     $revenueTotals[] = (float)$row['revenue'];
 }
 
-// Top Selling Items - last 30 days
+// Top Selling Items
 $topStmt = $conn->prepare("
     SELECT m.name, SUM(oi.quantity) AS sold
     FROM order_items oi
@@ -101,29 +102,14 @@ include('sidebar.php');
 
 <div class="main-content">
   <h1>Manager Dashboard</h1>
-  <p>Welcome, <?= htmlspecialchars($_SESSION['username']) ?></p>
+  <p>Welcome, <?= htmlspecialchars($_SESSION['username'] ?? 'Manager') ?></p>
 
   <div class="dashboard-cards">
-    <div class="card">
-      <h3>Total Orders</h3>
-      <p><?= $totalOrders ?></p>
-    </div>
-    <div class="card">
-      <h3>Pending Orders</h3>
-      <p><?= $pendingOrders ?></p>
-    </div>
-    <div class="card">
-      <h3>Completed Orders</h3>
-      <p><?= $completedOrders ?></p>
-    </div>
-    <div class="card">
-      <h3>Total Staff</h3>
-      <p><?= $totalStaff ?></p>
-    </div>
-    <div class="card">
-      <h3>Total Menu Items</h3>
-      <p><?= $totalMenu ?></p>
-    </div>
+    <div class="card"><h3>Total Orders</h3><p><?= $totalOrders ?></p></div>
+    <div class="card"><h3>Pending Orders</h3><p><?= $pendingOrders ?></p></div>
+    <div class="card"><h3>Completed Orders</h3><p><?= $completedOrders ?></p></div>
+    <div class="card"><h3>Total Staff</h3><p><?= $totalStaff ?></p></div>
+    <div class="card"><h3>Total Menu Items</h3><p><?= $totalMenu ?></p></div>
   </div>
 
   <h2>Recent Orders</h2>
@@ -143,14 +129,13 @@ include('sidebar.php');
         <td><?= $order['id'] ?></td>
         <td><?= htmlspecialchars($order['customer_name']) ?></td>
         <td><?= htmlspecialchars(ucfirst($order['status'])) ?></td>
-        <td>$<?= number_format($order['total_amount'], 2) ?></td>
+        <td>Rs.<?= number_format($order['total_amount'], 2) ?></td>
         <td><?= $order['created_at'] ?></td>
       </tr>
       <?php endwhile; ?>
     </tbody>
   </table>
 
-  <!-- Chart.js Charts -->
   <h2>📈 Daily Orders (Last 7 Days)</h2>
   <canvas id="ordersChart" height="100"></canvas>
 
@@ -165,10 +150,8 @@ include('sidebar.php');
 <script>
 const dailyLabels = <?= json_encode($dailyLabels) ?>;
 const dailyCounts = <?= json_encode($dailyCounts) ?>;
-
 const revenueLabels = <?= json_encode($revenueLabels) ?>;
 const revenueTotals = <?= json_encode($revenueTotals) ?>;
-
 const topLabels = <?= json_encode($topLabels) ?>;
 const topSold = <?= json_encode($topSold) ?>;
 
@@ -200,7 +183,7 @@ new Chart(document.getElementById("revenueChart"), {
   data: {
     labels: revenueLabels,
     datasets: [{
-      label: 'Revenue ($)',
+      label: 'Revenue (Rs.)',
       data: revenueTotals,
       backgroundColor: 'green'
     }]
@@ -213,7 +196,7 @@ new Chart(document.getElementById("revenueChart"), {
   }
 });
 
-// Top Items Pie Chart
+// Top Items Chart
 new Chart(document.getElementById("topItemsChart"), {
   type: 'pie',
   data: {
@@ -229,5 +212,8 @@ new Chart(document.getElementById("topItemsChart"), {
   }
 });
 </script>
+
+<script src="/js/poll_orders.js"></script>
+<div id="live-orders"></div>
 
 <?php include('../includes/footer.php'); ?>

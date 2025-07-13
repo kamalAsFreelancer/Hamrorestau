@@ -157,7 +157,6 @@ form button {
   padding: 10px 20px;
   margin-right: 5px;
   border: none;
-  text-decoration: none;
   border-radius: 6px;
   background-color: #3498db;
   color: white;
@@ -168,7 +167,7 @@ form button.delete_btn {
   background-color: #e74c3c;
 }
 td button.delete_btn {
-  background-color: #cc847c;
+  background-color: #e74c3c;
 }
 td button.edit_btn {
   background-color: rgb(9, 136, 9);
@@ -182,7 +181,6 @@ td button {
     padding: 10px 20px;
     margin-right: 5px;
     border: none;
-    text-decoration: none;
     border-radius: 6px;
     background-color: #3498db;
     color: white;
@@ -205,31 +203,61 @@ form input, form textarea, form select {
   border-radius: 6px;
 }
 
-.edit_btn {
-  background-color: rgb(9, 136, 9);
-}
-.edit_del {
-  background-color: rgb(9, 136, 9);
-}
-a {
-  padding: 10px 20px;
-    margin-right: 5px;
-    border: none;
-    text-decoration: none;
-    border-radius: 6px;
-    background-color: #3498db;
-    color: white;
-    cursor: pointer;
+/* --- Responsive adjustments --- */
+
+@media (max-width: 768px) {
+  .cards-container {
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 18px;
+  }
+
+  .table-card {
+    padding: 20px 22px;
+    height: auto; /* Allow cards to grow with content */
+  }
+
+  .table-number {
+    font-size: 2rem;
+  }
+
+  form.add-table-form {
+    flex-direction: column;
+    gap: 15px;
+    max-width: 300px;
+    margin: 20px auto 40px auto;
+  }
+
+  form.add-table-form input[type=number],
+  form.add-table-form button {
+    width: 100%;
+    font-size: 1.1rem;
+  }
+
+  .status-select {
+    font-size: 1rem;
+  }
+
+  .buttons-row {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .btn {
+    flex: none;
+    width: 100%;
+    padding: 12px 0;
+    font-size: 1.1rem;
+  }
 }
 
-button {
-    padding: 10px 20px;
-    margin-right: 5px;
-    border: none;
-    text-decoration: none;
-    border-radius: 6px;
-    background-color: #3498db;
-    color: white;
-    cursor: pointer;
+@media (max-width: 480px) {
+  .table-number {
+    font-size: 1.7rem;
+  }
 
+  form.add-table-form {
+    max-width: 90%;
+    margin-bottom: 30px;
+  }
 }
+
