@@ -1,53 +1,39 @@
 <?php
-include("../includes/auth.php");
-requireLogin();
-include("../includes/db.php");
+require_once __DIR__ . '/../includes/auth.php';
+require_once __DIR__ . '/../includes/db.php';
+requireRole('manager');
 
-if (!checkRole('manager') && !checkRole('waiter')) {
-    exit("Access Denied");
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    header('Location: reservations.php');
+    exit;
 }
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $tableId = (int)($_POST['table_id'] ?? 0);
-    $newStatus = $_POST['new_status'] ?? '';
+$tableId = filter_input(INPUT_POST, 'table_id', FILTER_VALIDATE_INT);
+$newStatus = $_POST['new_status'] ?? '';
+$validStatuses = ['available', 'reserved', 'occupied'];
+$restaurantId = (int)($_SESSION['restaurant_id'] ?? 0);
 
-    $validStatuses = ['available', 'reserved', 'occupied'];
-    if (!in_array($newStatus, $validStatuses) || $tableId <= 0) {
-        exit("Invalid request.");
-    }
+if (!$tableId || !in_array($newStatus, $validStatuses, true) || !$restaurantId) {
+    http_response_code(400);
+    exit('Invalid request.');
+}
 
-    $restaurantId = (int)$_SESSION['restaurant_id'];
-
-    // Check table ownership
-    $stmt = $conn->prepare("SELECT id FROM tables WHERE id = ? AND restaurant_id = ?");
-    $stmt->bind_param("ii", $tableId, $restaurantId);
-    $stmt->execute();
-    $result = $stmt->get_result();
-
-    if ($result->num_rows === 0) {
-        exit("Table not found.");
-    }
-
-    if ($newStatus === 'available') {
-        // Clear reservation info
-        $updateStmt = $conn->prepare("UPDATE tables SET status = ?, reserved_by = NULL, reserved_at = NULL WHERE id = ? AND restaurant_id = ?");
-        $updateStmt->bind_param("sii", $newStatus, $tableId, $restaurantId);
-    } elseif ($newStatus === 'reserved') {
-        $now = date('Y-m-d H:i:s');
-        $reservedBy = $_SESSION['username'] ?? 'Unknown';
-        $updateStmt = $conn->prepare("UPDATE tables SET status = ?, reserved_by = ?, reserved_at = ? WHERE id = ? AND restaurant_id = ?");
-        $updateStmt->bind_param("ssssi", $newStatus, $reservedBy, $now, $tableId, $restaurantId);
-    } else { // occupied
-        $updateStmt = $conn->prepare("UPDATE tables SET status = ? WHERE id = ? AND restaurant_id = ?");
-        $updateStmt->bind_param("sii", $newStatus, $tableId, $restaurantId);
-    }
-
-    if ($updateStmt->execute()) {
-        header("Location: tables.php?message=Table status updated successfully");
-        exit;
-    } else {
-        exit("Failed to update table status.");
-    }
+if ($newStatus === 'available') {
+    $stmt = $conn->prepare('UPDATE tables SET status = ?, reserved_by = NULL, reserved_at = NULL WHERE id = ? AND restaurant_id = ?');
+    $stmt->bind_param('sii', $newStatus, $tableId, $restaurantId);
+} elseif ($newStatus === 'reserved') {
+    $reservedBy = $_SESSION['username'] ?? 'Manager';
+    $stmt = $conn->prepare('UPDATE tables SET status = ?, reserved_by = ?, reserved_at = NOW() WHERE id = ? AND restaurant_id = ?');
+    $stmt->bind_param('ssii', $newStatus, $reservedBy, $tableId, $restaurantId);
 } else {
-    exit("Invalid request method.");
+    $stmt = $conn->prepare('UPDATE tables SET status = ?, reserved_by = NULL, reserved_at = NULL WHERE id = ? AND restaurant_id = ?');
+    $stmt->bind_param('sii', $newStatus, $tableId, $restaurantId);
 }
+
+if (!$stmt->execute() || $stmt->affected_rows < 1) {
+    http_response_code(404);
+    exit('Table not found or was not changed.');
+}
+
+header('Location: reservations.php?message=' . urlencode('Table status updated successfully'));
+exit;
