@@ -1,0 +1,27 @@
+...
+1. View and Manage Current Orders for a Table
+Show waiter a live list of items ordered for the current table.
+
+Allow editing quantities or removing items before sending the order to kitchen/bar.
+
+Mark the order as submitted or sent.
+
+2. Order Status Tracking
+Show kitchen and bar staff their respective pending orders.
+
+Allow them to update order status (e.g., preparing → ready).
+
+Notify waiters when items are ready.
+
+3. Bill Generation & Printing
+Generate a detailed bill for the table’s completed order.
+
+Include taxes, discounts, promotions.
+
+Provide print-friendly view.
+
+4. Table Status Automation
+Automatically mark table as occupied when first order is taken.
+
+Update table status based on order and payment status.
+

@@ -1,0 +1,388 @@
+/* =========================================================
+   HAMRORESTO - SIDEBAR CSS
+   ========================================================= */
+
+/* =========================================================
+   GLOBAL
+   ========================================================= */
+
+   body {
+    margin: 0;
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    background: #f4f7fb;
+}
+
+
+/* =========================================================
+   SIDEBAR CONTAINER
+   ========================================================= */
+
+.sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+
+    width: 250px;
+    height: 100vh;
+
+    box-sizing: border-box;
+
+    background: #2c3e50;
+    color: #ecf0f1;
+
+    padding: 20px 15px;
+
+    box-shadow: 2px 0 12px rgba(0, 0, 0, 0.15);
+
+    overflow-y: auto;
+    overflow-x: hidden;
+
+    transition: width 0.3s ease;
+
+    z-index: 1000;
+}
+
+
+/* =========================================================
+   COLLAPSED SIDEBAR
+   ========================================================= */
+
+.sidebar.collapsed {
+    width: 70px;
+    overflow-x: hidden;
+}
+
+
+/* =========================================================
+   SIDEBAR HEADER
+   ========================================================= */
+
+.sidebar h2 {
+    margin: 0 0 30px;
+
+    display: flex;
+    align-items: center;
+
+    gap: 10px;
+
+    color: #ffffff;
+
+    font-size: 1.7rem;
+    font-weight: 700;
+
+    white-space: nowrap;
+}
+
+.sidebar h2 i {
+    min-width: 30px;
+
+    color: #e67e22;
+
+    font-size: 1.8rem;
+
+    text-align: center;
+}
+
+
+/* =========================================================
+   SIDEBAR NAVIGATION
+   ========================================================= */
+
+.sidebar ul {
+    list-style: none;
+
+    padding: 0;
+    margin: 0 0 30px;
+}
+
+.sidebar ul li {
+    margin-bottom: 10px;
+}
+
+.sidebar ul li a {
+    display: flex;
+    align-items: center;
+
+    gap: 15px;
+
+    padding: 11px 12px;
+
+    border-radius: 8px;
+
+    color: #ecf0f1;
+
+    font-size: 1rem;
+    font-weight: 600;
+
+    text-decoration: none;
+
+    white-space: nowrap;
+
+    transition:
+        background 0.25s ease,
+        color 0.25s ease,
+        transform 0.2s ease;
+}
+
+.sidebar ul li a i {
+    min-width: 22px;
+
+    font-size: 1.25rem;
+
+    text-align: center;
+}
+
+.sidebar ul li a:hover {
+    background: #e67e22;
+    color: #ffffff;
+
+    transform: translateX(2px);
+}
+
+
+/* =========================================================
+   ACTIVE MENU
+   ========================================================= */
+
+.sidebar ul li a.active {
+    background: #e67e22;
+    color: #ffffff;
+}
+
+
+/* =========================================================
+   COLLAPSED SIDEBAR - HIDE TEXT
+   ========================================================= */
+
+.sidebar.collapsed ul li a span {
+    display: none;
+}
+
+.sidebar.collapsed h2 span {
+    display: none;
+}
+
+
+/* =========================================================
+   COLLAPSED SIDEBAR - CENTER ICONS
+   ========================================================= */
+
+.sidebar.collapsed ul li a {
+    justify-content: center;
+
+    padding: 11px 8px;
+}
+
+.sidebar.collapsed ul li a i {
+    min-width: 100%;
+
+    margin: 0;
+
+    font-size: 1.3rem;
+}
+
+
+/* =========================================================
+   SIDEBAR TABLE
+   ========================================================= */
+
+.sidebar table {
+    width: 100%;
+
+    border-collapse: collapse;
+
+    color: #bdc3c7;
+
+    font-size: 0.9rem;
+}
+
+.sidebar table thead tr {
+    border-bottom: 1px solid #7f8c8d;
+}
+
+.sidebar table th,
+.sidebar table td {
+    padding: 8px 6px;
+
+    text-align: left;
+
+    white-space: nowrap;
+}
+
+.sidebar table tbody tr:hover {
+    background: rgba(230, 126, 34, 0.15);
+
+    color: #e67e22;
+}
+
+
+/* =========================================================
+   HIDE SIDEBAR TABLE WHEN COLLAPSED
+   ========================================================= */
+
+.sidebar.collapsed table {
+    display: none;
+}
+
+
+/* =========================================================
+   TOGGLE BUTTON
+   ========================================================= */
+
+#toggle-btn {
+    position: fixed;
+
+    top: 20px;
+    left: 265px;
+
+    width: 38px;
+    height: 38px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 0;
+
+    background: #e67e22;
+
+    border: none;
+    border-radius: 8px;
+
+    color: #ffffff;
+
+    font-size: 1.2rem;
+
+    cursor: pointer;
+
+    box-shadow: 0 4px 10px rgba(230, 126, 34, 0.35);
+
+    transition:
+        left 0.3s ease,
+        background 0.3s ease,
+        transform 0.2s ease;
+
+    z-index: 1100;
+}
+
+#toggle-btn:hover {
+    background: #d35400;
+
+    transform: scale(1.05);
+}
+
+
+/* =========================================================
+   MOVE TOGGLE WHEN SIDEBAR IS COLLAPSED
+   ========================================================= */
+
+.sidebar.collapsed + #toggle-btn {
+    left: 85px;
+}
+
+
+/* =========================================================
+   SIDEBAR CONTENT
+   ========================================================= */
+
+.sidebar-content {
+    padding: 0;
+    margin-top: 65px;
+}
+
+
+/* =========================================================
+   CUSTOM SCROLLBAR
+   ========================================================= */
+
+.sidebar::-webkit-scrollbar {
+    width: 6px;
+}
+
+.sidebar::-webkit-scrollbar-track {
+    background: #243442;
+}
+
+.sidebar::-webkit-scrollbar-thumb {
+    background: #607080;
+    border-radius: 10px;
+}
+
+.sidebar::-webkit-scrollbar-thumb:hover {
+    background: #e67e22;
+}
+
+
+/* =========================================================
+   RESPONSIVE - TABLET
+   ========================================================= */
+
+@media (max-width: 768px) {
+
+    .sidebar {
+        width: 70px;
+    }
+
+    .sidebar h2 span {
+        display: none;
+    }
+
+    .sidebar ul li a span {
+        display: none;
+    }
+
+    .sidebar ul li a {
+        justify-content: center;
+        padding: 11px 8px;
+    }
+
+    .sidebar ul li a i {
+        min-width: 100%;
+    }
+
+    #toggle-btn {
+        left: 85px;
+    }
+
+    .sidebar.collapsed {
+        width: 0;
+        padding-left: 0;
+        padding-right: 0;
+    }
+
+    .sidebar.collapsed + #toggle-btn {
+        left: 15px;
+    }
+}
+
+
+/* =========================================================
+   RESPONSIVE - MOBILE
+   ========================================================= */
+
+@media (max-width: 480px) {
+
+    .sidebar {
+        width: 70px;
+    }
+
+    #toggle-btn {
+        top: 15px;
+        left: 85px;
+
+        width: 36px;
+        height: 36px;
+    }
+
+    .sidebar.collapsed {
+        width: 0;
+    }
+
+    .sidebar.collapsed + #toggle-btn {
+        left: 15px;
+    }
+
+    .sidebar-content {
+        margin-top: 60px;
+    }
+}

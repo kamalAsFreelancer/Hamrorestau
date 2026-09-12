@@ -1,0 +1,616 @@
+/* =========================================================
+   HAMRO RESTO - SIDEBAR
+   Clean • Modern • Responsive
+   ========================================================= */
+
+/* =========================================================
+   GLOBAL
+   ========================================================= */
+
+   * {
+    box-sizing: border-box;
+}
+
+html,
+body {
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    background: #f5f7fa;
+    color: #333;
+    overflow-x: hidden;
+}
+
+
+/* =========================================================
+   SIDEBAR
+   ========================================================= */
+
+.sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+
+    width: 250px;
+    height: 100vh;
+
+    padding: 20px 14px;
+
+    background: #26384a;
+    color: #ffffff;
+
+    box-shadow: 4px 0 18px rgba(0, 0, 0, 0.12);
+
+    overflow-x: hidden;
+    overflow-y: auto;
+
+    z-index: 1000;
+
+    transition:
+        width 0.25s ease,
+        transform 0.25s ease;
+}
+
+
+/* =========================================================
+   SIDEBAR CONTENT
+   ========================================================= */
+
+.sidebar-content {
+    width: 100%;
+    margin-top: 8px;
+    padding: 0;
+}
+
+
+/* =========================================================
+   SIDEBAR HEADER
+   ========================================================= */
+
+.sidebar h2 {
+    display: flex;
+    align-items: center;
+
+    gap: 10px;
+
+    margin: 0 0 28px;
+    padding: 0 8px;
+
+    color: #ffffff;
+
+    font-size: 1.45rem;
+    font-weight: 700;
+
+    line-height: 1.2;
+
+    white-space: nowrap;
+}
+
+.sidebar h2 i {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 30px;
+
+    color: #e67e22;
+
+    font-size: 1.45rem;
+
+    flex-shrink: 0;
+}
+
+
+/* =========================================================
+   NAVIGATION
+   ========================================================= */
+
+.sidebar ul {
+    list-style: none;
+
+    margin: 0;
+    padding: 0;
+}
+
+.sidebar ul li {
+    margin: 0 0 5px;
+}
+
+.sidebar ul li a {
+    display: flex;
+    align-items: center;
+
+    gap: 13px;
+
+    width: 100%;
+
+    padding: 11px 12px;
+
+    border-radius: 7px;
+
+    color: #dce3e8;
+
+    font-size: 0.94rem;
+    font-weight: 500;
+
+    text-decoration: none;
+
+    white-space: nowrap;
+
+    transition:
+        background 0.2s ease,
+        color 0.2s ease,
+        transform 0.15s ease;
+}
+
+
+/* Navigation Icons */
+
+.sidebar ul li a i {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 22px;
+
+    color: #b8c4ce;
+
+    font-size: 1rem;
+
+    flex-shrink: 0;
+
+    transition: color 0.2s ease;
+}
+
+
+/* =========================================================
+   NAVIGATION HOVER
+   ========================================================= */
+
+.sidebar ul li a:hover {
+    background: #344b60;
+    color: #ffffff;
+
+    transform: translateX(2px);
+}
+
+.sidebar ul li a:hover i {
+    color: #e67e22;
+}
+
+
+/* =========================================================
+   ACTIVE NAVIGATION
+   ========================================================= */
+
+.sidebar ul li a.active {
+    background: #e67e22;
+
+    color: #ffffff;
+
+    box-shadow:
+        0 4px 10px rgba(230, 126, 34, 0.25);
+}
+
+.sidebar ul li a.active i {
+    color: #ffffff;
+}
+
+
+/* =========================================================
+   COLLAPSED SIDEBAR
+   ========================================================= */
+
+.sidebar.collapsed {
+    width: 68px;
+}
+
+
+/* Hide navigation text */
+
+.sidebar.collapsed h2 span,
+.sidebar.collapsed ul li a span {
+    display: none;
+}
+
+
+/* Center logo */
+
+.sidebar.collapsed h2 {
+    justify-content: center;
+
+    padding: 0;
+
+    gap: 0;
+}
+
+.sidebar.collapsed h2 i {
+    width: auto;
+}
+
+
+/* Center navigation icons */
+
+.sidebar.collapsed ul li a {
+    justify-content: center;
+
+    gap: 0;
+
+    padding: 11px 8px;
+}
+
+.sidebar.collapsed ul li a i {
+    width: auto;
+
+    font-size: 1.05rem;
+}
+
+
+/* Hide sidebar table */
+
+.sidebar.collapsed table {
+    display: none;
+}
+
+
+/* =========================================================
+   SIDEBAR TABLE
+   ========================================================= */
+
+.sidebar table {
+    width: 100%;
+
+    margin-top: 25px;
+
+    border-collapse: collapse;
+
+    color: #cbd5df;
+
+    font-size: 0.78rem;
+}
+
+.sidebar table thead tr {
+    border-bottom: 1px solid #536678;
+}
+
+.sidebar table th,
+.sidebar table td {
+    padding: 7px 5px;
+
+    text-align: left;
+
+    white-space: nowrap;
+}
+
+.sidebar table th {
+    color: #ffffff;
+
+    font-weight: 600;
+}
+
+.sidebar table tbody tr {
+    transition: background 0.2s ease;
+}
+
+.sidebar table tbody tr:hover {
+    background: rgba(230, 126, 34, 0.12);
+
+    color: #ffffff;
+}
+
+
+/* =========================================================
+   TOGGLE BUTTON
+   ========================================================= */
+
+/*
+   Expanded sidebar:
+   Sidebar width = 250px
+   Button width  = 38px
+
+   Button overlaps the right edge of sidebar.
+*/
+
+#toggle-btn {
+    position: fixed;
+
+    top: 18px;
+
+    /*
+       250px - half of 38px
+       = 231px
+    */
+    left: 231px;
+
+    width: 38px;
+    height: 38px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 0;
+
+    border: none;
+
+    border-radius: 8px;
+
+    background: #e67e22;
+
+    color: #ffffff;
+
+    font-size: 1rem;
+
+    cursor: pointer;
+
+    z-index: 1100;
+
+    box-shadow:
+        0 4px 12px rgba(230, 126, 34, 0.30);
+
+    transition:
+        left 0.25s ease,
+        background 0.2s ease,
+        transform 0.15s ease;
+}
+
+
+/* Toggle Hover */
+
+#toggle-btn:hover {
+    background: #d35400;
+
+    transform: translateY(-1px);
+}
+
+
+/* Toggle Click */
+
+#toggle-btn:active {
+    transform: translateY(0);
+}
+
+
+/* =========================================================
+   COLLAPSED TOGGLE POSITION
+   ========================================================= */
+
+/*
+   Collapsed sidebar = 68px
+   Button = 38px
+
+   Center:
+   (68 - 38) / 2 = 15px
+
+   Since the button overlaps the edge,
+   left = 49px
+*/
+
+.sidebar.collapsed ~ #toggle-btn {
+    left: 49px;
+}
+
+
+/* =========================================================
+   MOBILE OVERLAY
+   ========================================================= */
+
+.sidebar-overlay {
+    display: none;
+
+    position: fixed;
+
+    inset: 0;
+
+    background: rgba(0, 0, 0, 0.45);
+
+    z-index: 999;
+
+    opacity: 0;
+
+    transition: opacity 0.25s ease;
+}
+
+.sidebar-overlay.active {
+    display: block;
+
+    opacity: 1;
+}
+
+
+/* =========================================================
+   TABLET
+   ========================================================= */
+
+@media (max-width: 900px) {
+
+    .sidebar {
+        width: 220px;
+    }
+
+    /*
+       220px - 19px = 201px
+    */
+
+    #toggle-btn {
+        left: 201px;
+    }
+
+    .sidebar.collapsed ~ #toggle-btn {
+        left: 49px;
+    }
+}
+
+
+/* =========================================================
+   MOBILE
+   ========================================================= */
+
+@media (max-width: 768px) {
+
+    /*
+       Sidebar becomes a drawer
+    */
+
+    .sidebar {
+        width: 260px;
+
+        transform: translateX(-100%);
+
+        box-shadow:
+            5px 0 25px rgba(0, 0, 0, 0.20);
+    }
+
+
+    /*
+       Open mobile drawer
+    */
+
+    .sidebar.mobile-open {
+        transform: translateX(0);
+    }
+
+
+    /*
+       Collapsed class should NOT
+       make mobile sidebar 68px.
+    */
+
+    .sidebar.collapsed {
+        width: 260px;
+
+        transform: translateX(-100%);
+    }
+
+    .sidebar.collapsed.mobile-open {
+        transform: translateX(0);
+    }
+
+
+    /*
+       Show text when mobile drawer is open
+    */
+
+    .sidebar.mobile-open h2 span,
+    .sidebar.mobile-open ul li a span {
+        display: inline;
+    }
+
+
+    .sidebar.mobile-open h2 {
+        justify-content: flex-start;
+
+        padding: 0 8px;
+
+        gap: 10px;
+    }
+
+
+    .sidebar.mobile-open ul li a {
+        justify-content: flex-start;
+
+        gap: 13px;
+
+        padding: 11px 12px;
+    }
+
+
+    .sidebar.mobile-open ul li a i {
+        width: 22px;
+    }
+
+
+    /*
+       Mobile toggle
+    */
+
+    #toggle-btn,
+    .sidebar.collapsed ~ #toggle-btn {
+        top: 15px;
+
+        left: 15px;
+
+        width: 40px;
+        height: 40px;
+
+        border-radius: 8px;
+    }
+}
+
+
+/* =========================================================
+   SMALL MOBILE
+   ========================================================= */
+
+@media (max-width: 480px) {
+
+    .sidebar {
+        width: 280px;
+    }
+
+    .sidebar.collapsed {
+        width: 280px;
+    }
+
+    .sidebar h2 {
+        font-size: 1.3rem;
+    }
+
+    .sidebar ul li a {
+        padding: 12px;
+
+        font-size: 0.93rem;
+    }
+
+    #toggle-btn,
+    .sidebar.collapsed ~ #toggle-btn {
+        width: 40px;
+        height: 40px;
+    }
+}
+
+
+/* =========================================================
+   VERY SMALL DEVICES
+   ========================================================= */
+
+@media (max-width: 360px) {
+
+    .sidebar {
+        width: 85vw;
+
+        max-width: 270px;
+    }
+
+    .sidebar.collapsed {
+        width: 85vw;
+
+        max-width: 270px;
+    }
+}
+
+
+/* =========================================================
+   SIDEBAR SCROLLBAR
+   ========================================================= */
+
+.sidebar::-webkit-scrollbar {
+    width: 5px;
+}
+
+.sidebar::-webkit-scrollbar-track {
+    background: #223241;
+}
+
+.sidebar::-webkit-scrollbar-thumb {
+    background: #607080;
+
+    border-radius: 10px;
+}
+
+.sidebar::-webkit-scrollbar-thumb:hover {
+    background: #e67e22;
+}
